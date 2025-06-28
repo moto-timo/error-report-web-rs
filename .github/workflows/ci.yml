@@ -19,6 +19,7 @@ jobs:
         env:
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: error_reports_test
+          POSTGRES_USER: postgres
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -46,18 +47,33 @@ jobs:
           target/
         key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
+    - name: Install PostgreSQL client
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y postgresql-client
+
+    - name: Wait for PostgreSQL
+      run: |
+        for i in {1..30}; do
+          if pg_isready -h localhost -p 5432 -U postgres; then
+            echo "PostgreSQL is ready"
+            break
+          fi
+          echo "Waiting for PostgreSQL... ($i/30)"
+          sleep 2
+        done
+
+    - name: Set up database
+      run: |
+        PGPASSWORD=postgres psql -h localhost -p 5432 -U postgres -d error_reports_test -f migrations/001_initial.sql
+      env:
+        PGPASSWORD: postgres
+
     - name: Check formatting
       run: cargo fmt --check
 
     - name: Run clippy
       run: cargo clippy -- -D warnings
-
-    - name: Set up database
-      run: |
-        export DATABASE_URL="postgresql://postgres:postgres@localhost:5432/error_reports_test"
-        psql $DATABASE_URL -f migrations/001_initial.sql
-      env:
-        PGPASSWORD: postgres
 
     - name: Run tests
       run: cargo test --verbose
@@ -134,12 +150,14 @@ jobs:
     - name: Install Rust
       uses: dtolnay/rust-toolchain@stable
 
+    - name: Install cargo-audit
+      run: cargo install --locked cargo-audit
+
     - name: Run cargo audit
-      run: |
-        cargo install cargo-audit
-        cargo audit
+      run: cargo audit
+
+    - name: Install cargo-deny
+      run: cargo install --locked cargo-deny
 
     - name: Run cargo deny
-      run: |
-        cargo install cargo-deny
-        cargo deny check
+      run: cargo deny check --hide-inclusion-graph
