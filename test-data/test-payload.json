@@ -1,0 +1,41 @@
+{
+  "machine": "qemux86-64",
+  "distro": "poky",
+  "distro_version": "4.0",
+  "build_sys": "x86_64-linux",
+  "nativelsbstring": "ubuntu-22.04",
+  "target_sys": "x86_64-poky-linux",
+  "failure_task": "do_compile",
+  "failure_package": "example-test-package",
+  "error_type": "CompilationError",
+  "error_details": "ERROR: example-test-package-1.0-r0 do_compile: Function failed: do_compile (log file is located at /path/to/build/tmp/work/core2-64-poky-linux/example-test-package/1.0-r0/temp/log.do_compile.12345)\nERROR: Logfile of failure stored in: /path/to/build/tmp/work/core2-64-poky-linux/example-test-package/1.0-r0/temp/log.do_compile.12345\nLog data follows:\n| DEBUG: Executing shell function do_compile\n| make: *** No rule to make target 'all'.  Stop.\n| WARNING: exit code 2 from a shell command.\n| ERROR: Function failed: do_compile",
+  "log_data": "DEBUG: Executing shell function do_compile\nNOTE: make -j 8\nmake: *** No rule to make target 'all'.  Stop.\nWARNING: exit code 2 from a shell command.\nERROR: Function failed: do_compile\n\nBuild Configuration:\nBUILD_SYS                 = \"x86_64-linux\"\nNATIVELSBSTRING           = \"ubuntu-22.04\"\nTARGET_SYS                = \"x86_64-poky-linux\"\nMACHINE                   = \"qemux86-64\"\nDISTRO                    = \"poky\"\nDISTRO_VERSION            = \"4.0\"\nTUNE_FEATURES             = \"m64 core2\"\nTARGET_FPU                = \"\"\nmeta                      = \"HEAD:abc123def456789\"\nmeta-poky                 = \"HEAD:def456ghi789012\"\nmeta-yocto-bsp            = \"HEAD:ghi789012abc345\"",
+  "submitter_name": "Test User",
+  "submitter_email": "test@example.com",
+  "branch_commit": "master:abc123def456789",
+  "build_configuration": {
+    "bb_version": "1.52.0",
+    "tune_features": "m64 core2",
+    "target_fpu": "",
+    "meta_layers": [
+      {
+        "name": "meta",
+        "path": "/path/to/meta",
+        "commit": "abc123def456789",
+        "branch": "master"
+      },
+      {
+        "name": "meta-poky",
+        "path": "/path/to/meta-poky",
+        "commit": "def456ghi789012",
+        "branch": "master"
+      },
+      {
+        "name": "meta-yocto-bsp",
+        "path": "/path/to/meta-yocto-bsp",
+        "commit": "ghi789012abc345",
+        "branch": "master"
+      }
+    ]
+  }
+}

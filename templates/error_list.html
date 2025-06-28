@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+
+{% block title %}Error Reports - Yocto Project{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>📋 Error Reports</h1>
+    <div>
+        <span class="text-muted">{{ pagination.total }} total errors</span>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="card-title mb-0">🔍 Filter & Search</h5>
+    </div>
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-3">
+                <label for="search" class="form-label">Search</label>
+                <input type="text" class="form-control" id="search" name="search" 
+                       value="{{ filters.search or '' }}" placeholder="Error details, package...">
+            </div>
+            <div class="col-md-2">
+                <label for="machine" class="form-label">Machine</label>
+                <input type="text" class="form-control" id="machine" name="machine" 
+                       value="{{ filters.machine or '' }}" placeholder="qemux86-64">
+            </div>
+            <div class="col-md-2">
+                <label for="distro" class="form-label">Distro</label>
+                <input type="text" class="form-control" id="distro" name="distro" 
+                       value="{{ filters.distro or '' }}" placeholder="poky">
+            </div>
+            <div class="col-md-2">
+                <label for="error_type" class="form-label">Error Type</label>
+                <input type="text" class="form-control" id="error_type" name="error_type" 
+                       value="{{ filters.error_type or '' }}" placeholder="CompilationError">
+            </div>
+            <div class="col-md-2">
+                <label for="failure_package" class="form-label">Package</label>
+                <input type="text" class="form-control" id="failure_package" name="failure_package" 
+                       value="{{ filters.failure_package or '' }}" placeholder="package-name">
+            </div>
+            <div class="col-md-1">
+                <label class="form-label">&nbsp;</label>
+                <div>
+                    <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+                </div>
+            </div>
+        </form>
+        {% if filters.search or filters.machine or filters.distro or filters.error_type or filters.failure_package %}
+        <div class="mt-2">
+            <a href="{{ base_url }}/Errors" class="btn btn-outline-secondary btn-sm">Clear Filters</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Error List -->
+{% if errors %}
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>Date</th>
+                        <th>Machine</th>
+                        <th>Distro</th>
+                        <th>Error Type</th>
+                        <th>Package</th>
+                        <th>Task</th>
+                        <th>Submitter</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for error in errors %}
+                    <tr>
+                        <td>
+                            <a href="{{ base_url }}/Errors/Details/{{ error.id }}/" class="text-decoration-none fw-bold">
+                                #{{ error.id }}
+                            </a>
+                        </td>
+                        <td>
+                            <small class="text-muted">
+                                {{ error.created_at.format("%Y-%m-%d") }}<br>
+                                {{ error.created_at.format("%H:%M") }}
+                            </small>
+                        </td>
+                        <td><code class="text-primary">{{ error.machine }}</code></td>
+                        <td>
+                            <span class="badge bg-secondary">{{ error.distro }}</span>
+                            <br><small class="text-muted">{{ error.distro_version }}</small>
+                        </td>
+                        <td>
+                            <span class="badge bg-danger error-type-badge">{{ error.error_type }}</span>
+                        </td>
+                        <td>
+                            <code>{{ error.failure_package }}</code>
+                        </td>
+                        <td>
+                            <code class="text-warning">{{ error.failure_task }}</code>
+                        </td>
+                        <td>
+                            {% if error.submitter_name %}
+                                <small>{{ error.submitter_name }}</small>
+                            {% else %}
+                                <small class="text-muted">Anonymous</small>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Pagination -->
+{% if pagination.total_pages > 1 %}
+<nav aria-label="Error reports pagination" class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if pagination.page > 1 %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ pagination.page - 1 }}{% if filters.search %}&search={{ filters.search }}{% endif %}{% if filters.machine %}&machine={{ filters.machine }}{% endif %}{% if filters.distro %}&distro={{ filters.distro }}{% endif %}{% if filters.error_type %}&error_type={{ filters.error_type }}{% endif %}{% if filters.failure_package %}&failure_package={{ filters.failure_package }}{% endif %}">Previous</a>
+        </li>
+        {% endif %}
+
+        {% for page_num in range(start=1, end=pagination.total_pages + 1) %}
+            {% if page_num == pagination.page %}
+            <li class="page-item active">
+                <span class="page-link">{{ page_num }}</span>
+            </li>
+            {% elif page_num <= 3 or page_num >= pagination.total_pages - 2 or (page_num >= pagination.page - 2 and page_num <= pagination.page + 2) %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_num }}{% if filters.search %}&search={{ filters.search }}{% endif %}{% if filters.machine %}&machine={{ filters.machine }}{% endif %}{% if filters.distro %}&distro={{ filters.distro }}{% endif %}{% if filters.error_type %}&error_type={{ filters.error_type }}{% endif %}{% if filters.failure_package %}&failure_package={{ filters.failure_package }}{% endif %}">{{ page_num }}</a>
+            </li>
+            {% elif page_num == 4 and pagination.page > 6 %}
+            <li class="page-item disabled">
+                <span class="page-link">...</span>
+            </li>
+            {% elif page_num == pagination.total_pages - 3 and pagination.page < pagination.total_pages - 5 %}
+            <li class="page-item disabled">
+                <span class="page-link">...</span>
+            </li>
+            {% endif %}
+        {% endfor %}
+
+        {% if pagination.page < pagination.total_pages %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ pagination.page + 1 }}{% if filters.search %}&search={{ filters.search }}{% endif %}{% if filters.machine %}&machine={{ filters.machine }}{% endif %}{% if filters.distro %}&distro={{ filters.distro }}{% endif %}{% if filters.error_type %}&error_type={{ filters.error_type }}{% endif %}{% if filters.failure_package %}&failure_package={{ filters.failure_package }}{% endif %}">Next</a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+
+<div class="text-center text-muted">
+    <small>
+        Showing {{ ((pagination.page - 1) * pagination.per_page) + 1 }} to 
+        {{ (pagination.page * pagination.per_page) | min(pagination.total) }} 
+        of {{ pagination.total }} errors
+    </small>
+</div>
+{% endif %}
+
+{% else %}
+<div class="text-center py-5">
+    <h3 class="text-muted">No Error Reports Found</h3>
+    <p class="text-muted">Try adjusting your filters or check back later.</p>
+    <a href="{{ base_url }}/Errors" class="btn btn-outline-primary">Clear Filters</a>
+</div>
+{% endif %}
+{% endblock %}

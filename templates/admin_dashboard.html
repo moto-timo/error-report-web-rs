@@ -1,0 +1,243 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - Yocto Project Error Reports{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>🛠️ Admin Dashboard</h1>
+    <div>
+        <a href="{{ base_url }}/Stats" class="btn btn-outline-primary">📊 Public Stats</a>
+    </div>
+</div>
+
+<!-- System Overview -->
+<div class="row mb-4">
+    <div class="col-md-2">
+        <div class="card stats-card bg-primary text-white">
+            <div class="card-body text-center">
+                <h3>{{ stats.total_errors }}</h3>
+                <small>Total Errors</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card stats-card bg-success text-white">
+            <div class="card-body text-center">
+                <h3>{{ stats.error_trends.this_week }}</h3>
+                <small>This Week</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card stats-card bg-info text-white">
+            <div class="card-body text-center">
+                <h3>{{ stats.error_trends.this_month }}</h3>
+                <small>This Month</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card stats-card bg-warning text-dark">
+            <div class="card-body text-center">
+                <h3>{{ stats.errors_by_type|length }}</h3>
+                <small>Error Types</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card stats-card bg-secondary text-white">
+            <div class="card-body text-center">
+                <h3>{{ stats.errors_by_machine|length }}</h3>
+                <small>Machines</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card stats-card bg-dark text-white">
+            <div class="card-body text-center">
+                <h3>{{ stats.top_submitters|length }}</h3>
+                <small>Submitters</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Trends -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">📈 Weekly Trends</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-6">
+                        <h4 class="text-primary">{{ stats.error_trends.this_week }}</h4>
+                        <small class="text-muted">This Week</small>
+                    </div>
+                    <div class="col-6">
+                        <h4 class="text-secondary">{{ stats.error_trends.last_week }}</h4>
+                        <small class="text-muted">Last Week</small>
+                    </div>
+                </div>
+                <hr>
+                <div class="text-center">
+                    {% if stats.error_trends.week_over_week_change > 0 %}
+                    <span class="badge bg-danger">↑ {{ "%.1f"|format(stats.error_trends.week_over_week_change) }}%</span>
+                    {% elif stats.error_trends.week_over_week_change < 0 %}
+                    <span class="badge bg-success">↓ {{ "%.1f"|format(stats.error_trends.week_over_week_change|abs) }}%</span>
+                    {% else %}
+                    <span class="badge bg-secondary">→ No change</span>
+                    {% endif %}
+                    <small class="d-block text-muted mt-1">Week over week</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">📅 Monthly Trends</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-6">
+                        <h4 class="text-primary">{{ stats.error_trends.this_month }}</h4>
+                        <small class="text-muted">This Month</small>
+                    </div>
+                    <div class="col-6">
+                        <h4 class="text-secondary">{{ stats.error_trends.last_month }}</h4>
+                        <small class="text-muted">Last Month</small>
+                    </div>
+                </div>
+                <hr>
+                <div class="text-center">
+                    {% if stats.error_trends.month_over_month_change > 0 %}
+                    <span class="badge bg-danger">↑ {{ "%.1f"|format(stats.error_trends.month_over_month_change) }}%</span>
+                    {% elif stats.error_trends.month_over_month_change < 0 %}
+                    <span class="badge bg-success">↓ {{ "%.1f"|format(stats.error_trends.month_over_month_change|abs) }}%</span>
+                    {% else %}
+                    <span class="badge bg-secondary">→ No change</span>
+                    {% endif %}
+                    <small class="d-block text-muted mt-1">Month over month</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activity -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">🕒 Recent Error Reports</h5>
+            </div>
+            <div class="card-body">
+                {% if stats.recent_errors %}
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Date/Time</th>
+                                <th>Machine</th>
+                                <th>Distro</th>
+                                <th>Error Type</th>
+                                <th>Package</th>
+                                <th>Submitter</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for error in stats.recent_errors %}
+                            <tr>
+                                <td>
+                                    <a href="{{ base_url }}/Errors/Details/{{ error.id }}/" class="text-decoration-none">
+                                        #{{ error.id }}
+                                    </a>
+                                </td>
+                                <td>
+                                    <small>
+                                        {{ error.created_at.format("%m/%d %H:%M") }}
+                                    </small>
+                                </td>
+                                <td><code>{{ error.machine }}</code></td>
+                                <td><span class="badge bg-secondary">{{ error.distro }}</span></td>
+                                <td><span class="badge bg-danger error-type-badge">{{ error.error_type }}</span></td>
+                                <td><code>{{ error.failure_package }}</code></td>
+                                <td>
+                                    {% if error.submitter_name %}
+                                    <small>{{ error.submitter_name }}</small>
+                                    {% else %}
+                                    <small class="text-muted">Anonymous</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{{ base_url }}/Errors/Details/{{ error.id }}/" class="btn btn-outline-primary btn-sm">View</a>
+                                        <a href="{{ base_url }}/api/errors/{{ error.id }}" class="btn btn-outline-secondary btn-sm">JSON</a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted text-center py-3">No recent errors.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Top Categories -->
+<div class="row">
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">🎯 Top Error Types</h6>
+            </div>
+            <div class="card-body">
+                {% for error_type, count in stats.errors_by_type[:5] %}
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="badge bg-danger">{{ error_type }}</span>
+                    <strong>{{ count }}</strong>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">🖥️ Top Machines</h6>
+            </div>
+            <div class="card-body">
+                {% for machine, count in stats.errors_by_machine[:5] %}
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <code>{{ machine }}</code>
+                    <strong>{{ count }}</strong>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">📦 Top Failing Packages</h6>
+            </div>
+            <div class="card-body">
+                {% for package, count in stats.errors_by_package[:5] %}
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <code>{{ package }}</code>
+                    <strong>{{ count }}</strong>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

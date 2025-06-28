@@ -1,0 +1,261 @@
+{% extends "base.html" %}
+
+{% block title %}Error #{{ error.id }} - Yocto Project{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-start mb-4">
+    <div>
+        <h1>🐛 Error Report #{{ error.id }}</h1>
+        <p class="text-muted mb-0">
+            Submitted {{ error.created_at.format("%Y-%m-%d at %H:%M UTC") }}
+            {% if error.submitter_name %}by {{ error.submitter_name }}{% endif %}
+        </p>
+    </div>
+    <div>
+        <a href="{{ base_url }}/Errors" class="btn btn-outline-secondary">← Back to List</a>
+        {% if bugzilla_url %}
+        <a href="{{ bugzilla_url }}" target="_blank" class="btn btn-outline-primary">Report Bug</a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <!-- Error Overview -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">📋 Error Overview</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-sm">
+                            <tr>
+                                <th>Machine:</th>
+                                <td><code>{{ error.machine }}</code></td>
+                            </tr>
+                            <tr>
+                                <th>Distribution:</th>
+                                <td>
+                                    <span class="badge bg-secondary">{{ error.distro }}</span>
+                                    {{ error.distro_version }}
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Build System:</th>
+                                <td><code>{{ error.build_sys }}</code></td>
+                            </tr>
+                            <tr>
+                                <th>Target System:</th>
+                                <td><code>{{ error.target_sys }}</code></td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table table-sm">
+                            <tr>
+                                <th>Error Type:</th>
+                                <td><span class="badge bg-danger">{{ error.error_type }}</span></td>
+                            </tr>
+                            <tr>
+                                <th>Failed Package:</th>
+                                <td><code>{{ error.failure_package }}</code></td>
+                            </tr>
+                            <tr>
+                                <th>Failed Task:</th>
+                                <td><code class="text-warning">{{ error.failure_task }}</code></td>
+                            </tr>
+                            <tr>
+                                <th>Branch/Commit:</th>
+                                <td><code>{{ error.branch_commit }}</code></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Error Details -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">🔍 Error Details</h5>
+            </div>
+            <div class="card-body">
+                <pre class="log-content p-3">{{ error.error_details }}</pre>
+            </div>
+        </div>
+
+        <!-- Build Log -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">📜 Build Log</h5>
+                <button class="btn btn-sm btn-outline-secondary" onclick="toggleLogContent()">Toggle Full Log</button>
+            </div>
+            <div class="card-body">
+                <div id="log-preview" class="log-content p-3" style="max-height: 300px; overflow: hidden;">
+                    {{ error.log_data }}
+                </div>
+                <div id="log-full" class="log-content p-3" style="display: none;">
+                    {{ error.log_data }}
+                </div>
+            </div>
+        </div>
+
+        {% if build_config %}
+        <!-- Build Configuration -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">⚙️ Build Configuration</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-sm">
+                            <tr>
+                                <th>BitBake Version:</th>
+                                <td><code>{{ build_config.bb_version }}</code></td>
+                            </tr>
+                            {% if build_config.tune_features %}
+                            <tr>
+                                <th>Tune Features:</th>
+                                <td><code>{{ build_config.tune_features }}</code></td>
+                            </tr>
+                            {% endif %}
+                            {% if build_config.target_fpu %}
+                            <tr>
+                                <th>Target FPU:</th>
+                                <td><code>{{ build_config.target_fpu }}</code></td>
+                            </tr>
+                            {% endif %}
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        {% if build_config.meta_layers != "[]" %}
+                        <h6>Meta Layers:</h6>
+                        <div class="small">
+                            <pre class="bg-light p-2 rounded">{{ build_config.meta_layers }}</pre>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="col-lg-4">
+        <!-- Contact Information -->
+        {% if error.submitter_name or error.submitter_email %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="card-title mb-0">👤 Submitter</h6>
+            </div>
+            <div class="card-body">
+                {% if error.submitter_name %}
+                <p><strong>Name:</strong> {{ error.submitter_name }}</p>
+                {% endif %}
+                {% if error.submitter_email %}
+                <p><strong>Email:</strong>
+                    <a href="mailto:{{ error.submitter_email }}">{{ error.submitter_email }}</a>
+                </p>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- System Information -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="card-title mb-0">🖥️ System Info</h6>
+            </div>
+            <div class="card-body">
+                <table class="table table-sm">
+                    <tr>
+                        <th>Native LSB:</th>
+                        <td><small>{{ error.nativelsbstring }}</small></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- Similar Errors -->
+        {% if similar_errors %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="card-title mb-0">🔗 Similar Errors</h6>
+            </div>
+            <div class="card-body">
+                {% for similar in similar_errors %}
+                <div class="similar-error">
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ base_url }}/Errors/Details/{{ similar.id }}/" class="text-decoration-none">
+                            #{{ similar.id }}
+                        </a>
+                        <small class="text-muted">{{ similar.created_at.format("%m/%d") }}</small>
+                    </div>
+                    <small class="text-muted">{{ similar.machine }} - {{ similar.distro }}</small>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Actions -->
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">🛠️ Actions</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ base_url }}/api/errors/{{ error.id }}" class="btn btn-outline-secondary btn-sm">
+                        📄 View JSON
+                    </a>
+                    {% if bugzilla_url %}
+                    <a href="{{ bugzilla_url }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                        🐛 Report Bug
+                    </a>
+                    {% endif %}
+                    <button class="btn btn-outline-info btn-sm" onclick="copyErrorUrl()">
+                        📋 Copy URL
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function toggleLogContent() {
+    const preview = document.getElementById('log-preview');
+    const full = document.getElementById('log-full');
+
+    if (preview.style.display === 'none') {
+        preview.style.display = 'block';
+        full.style.display = 'none';
+    } else {
+        preview.style.display = 'none';
+        full.style.display = 'block';
+    }
+}
+
+function copyErrorUrl() {
+    const url = window.location.href;
+    navigator.clipboard.writeText(url).then(function() {
+        // Show a temporary success message
+        const button = event.target;
+        const originalText = button.innerHTML;
+        button.innerHTML = '✅ Copied!';
+        button.classList.remove('btn-outline-info');
+        button.classList.add('btn-success');
+
+        setTimeout(function() {
+            button.innerHTML = originalText;
+            button.classList.remove('btn-success');
+            button.classList.add('btn-outline-info');
+        }, 2000);
+    });
+}
+</script>
+{% endblock %}

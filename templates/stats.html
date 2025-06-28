@@ -1,0 +1,325 @@
+{% extends "base.html" %}
+
+{% block title %}Statistics - Yocto Project Error Reports{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>📊 Error Report Statistics</h1>
+    <div>
+        <small class="text-muted">Updated in real-time</small>
+    </div>
+</div>
+
+<!-- Overview Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card stats-card bg-primary text-white">
+            <div class="card-body text-center">
+                <h2>{{ stats.total_errors }}</h2>
+                <p class="mb-0">Total Errors</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card bg-info text-white">
+            <div class="card-body text-center">
+                <h2>{{ stats.error_trends.this_week }}</h2>
+                <p class="mb-0">This Week</p>
+                {% if stats.error_trends.week_over_week_change > 0 %}
+                <small class="text-light">↑ {{ "%.1f"|format(stats.error_trends.week_over_week_change) }}%</small>
+                {% elif stats.error_trends.week_over_week_change < 0 %}
+                <small class="text-light">↓ {{ "%.1f"|format(stats.error_trends.week_over_week_change|abs) }}%</small>
+                {% else %}
+                <small class="text-light">→ No change</small>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card bg-success text-white">
+            <div class="card-body text-center">
+                <h2>{{ stats.error_trends.this_month }}</h2>
+                <p class="mb-0">This Month</p>
+                {% if stats.error_trends.month_over_month_change > 0 %}
+                <small class="text-light">↑ {{ "%.1f"|format(stats.error_trends.month_over_month_change) }}%</small>
+                {% elif stats.error_trends.month_over_month_change < 0 %}
+                <small class="text-light">↓ {{ "%.1f"|format(stats.error_trends.month_over_month_change|abs) }}%</small>
+                {% else %}
+                <small class="text-light">→ No change</small>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card bg-warning text-dark">
+            <div class="card-body text-center">
+                <h2>{{ stats.errors_by_type|length }}</h2>
+                <p class="mb-0">Error Types</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row mb-4">
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">📈 Daily Error Trends (Last 30 Days)</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="dailyTrendsChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">🎯 Error Types Distribution</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="errorTypesChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Tables -->
+<div class="row">
+    <div class="col-lg-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">🖥️ Top Machines by Error Count</h5>
+            </div>
+            <div class="card-body">
+                {% if stats.errors_by_machine %}
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Machine</th>
+                                <th class="text-end">Error Count</th>
+                                <th class="text-end">Percentage</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for machine, count in stats.errors_by_machine %}
+                            <tr>
+                                <td><code>{{ machine }}</code></td>
+                                <td class="text-end">{{ count }}</td>
+                                <td class="text-end">{{ "%.1f"|format((count / stats.total_errors) * 100) }}%</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted">No machine data available.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">🐧 Top Distributions by Error Count</h5>
+            </div>
+            <div class="card-body">
+                {% if stats.errors_by_distro %}
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Distribution</th>
+                                <th class="text-end">Error Count</th>
+                                <th class="text-end">Percentage</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for distro, count in stats.errors_by_distro %}
+                            <tr>
+                                <td><span class="badge bg-secondary">{{ distro }}</span></td>
+                                <td class="text-end">{{ count }}</td>
+                                <td class="text-end">{{ "%.1f"|format((count / stats.total_errors) * 100) }}%</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted">No distribution data available.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">⚠️ Top Error Types</h5>
+            </div>
+            <div class="card-body">
+                {% if stats.errors_by_type %}
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Error Type</th>
+                                <th class="text-end">Count</th>
+                                <th class="text-end">Percentage</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for error_type, count in stats.errors_by_type %}
+                            <tr>
+                                <td>
+                                    <span class="badge bg-danger error-type-badge">{{ error_type }}</span>
+                                </td>
+                                <td class="text-end">{{ count }}</td>
+                                <td class="text-end">{{ "%.1f"|format((count / stats.total_errors) * 100) }}%</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted">No error type data available.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">📦 Top Failing Packages</h5>
+            </div>
+            <div class="card-body">
+                {% if stats.errors_by_package %}
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Package</th>
+                                <th class="text-end">Failures</th>
+                                <th class="text-end">Percentage</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for package, count in stats.errors_by_package %}
+                            <tr>
+                                <td><code>{{ package }}</code></td>
+                                <td class="text-end">{{ count }}</td>
+                                <td class="text-end">{{ "%.1f"|format((count / stats.total_errors) * 100) }}%</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted">No package failure data available.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if stats.top_submitters %}
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">👥 Top Submitters</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Email</th>
+                                <th class="text-end">Submissions</th>
+                                <th class="text-end">Percentage</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for email, count in stats.top_submitters %}
+                            <tr>
+                                <td>{{ email }}</td>
+                                <td class="text-end">{{ count }}</td>
+                                <td class="text-end">{{ "%.1f"|format((count / stats.total_errors) * 100) }}%</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Daily Trends Chart
+const dailyCtx = document.getElementById('dailyTrendsChart').getContext('2d');
+const dailyChart = new Chart(dailyCtx, {
+    type: 'line',
+    data: {
+        labels: [{% for stat in stats.daily_stats %}'{{ stat.date }}'{% if not loop.last %},{% endif %}{% endfor %}],
+        datasets: [{
+            label: 'Errors per Day',
+            data: [{% for stat in stats.daily_stats %}{{ stat.count }}{% if not loop.last %},{% endif %}{% endfor %}],
+            borderColor: 'rgb(75, 192, 192)',
+            backgroundColor: 'rgba(75, 192, 192, 0.1)',
+            tension: 0.1,
+            fill: true
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                display: false
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    stepSize: 1
+                }
+            }
+        }
+    }
+});
+
+// Error Types Pie Chart
+const typeCtx = document.getElementById('errorTypesChart').getContext('2d');
+const typeChart = new Chart(typeCtx, {
+    type: 'doughnut',
+    data: {
+        labels: [{% for error_type, count in stats.errors_by_type %}'{{ error_type }}'{% if not loop.last %},{% endif %}{% endfor %}],
+        datasets: [{
+            data: [{% for error_type, count in stats.errors_by_type %}{{ count }}{% if not loop.last %},{% endif %}{% endfor %}],
+            backgroundColor: [
+                '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
+                '#FF9F40', '#FF6384', '#C9CBCF', '#4BC0C0', '#FF6384'
+            ]
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                position: 'bottom'
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

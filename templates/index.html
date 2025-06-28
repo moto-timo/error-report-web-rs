@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+
+{% block title %}Yocto Project Error Reporting - Home{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="jumbotron bg-light p-5 rounded-3 mb-4">
+            <h1 class="display-4">🔧 Yocto Project Error Reporting</h1>
+            <p class="lead">
+                Central repository for build error reports from Yocto Project builds. 
+                Submit errors, browse existing reports, and analyze build trends.
+            </p>
+            <hr class="my-4">
+            <p>
+                Use the <code>send-error-report</code> tool from your Yocto build environment 
+                to submit errors, or browse existing reports using the interface below.
+            </p>
+            <a class="btn btn-primary btn-lg" href="{{ base_url }}/Errors" role="button">
+                📋 Browse Error Reports
+            </a>
+            <a class="btn btn-outline-secondary btn-lg" href="{{ base_url }}/Stats" role="button">
+                📊 View Statistics
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title mb-0">🕒 Recent Error Reports</h3>
+            </div>
+            <div class="card-body">
+                {% if recent_errors %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Machine</th>
+                                    <th>Distro</th>
+                                    <th>Error Type</th>
+                                    <th>Package</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for error in recent_errors %}
+                                <tr>
+                                    <td>
+                                        <a href="{{ base_url }}/Errors/Details/{{ error.id }}/" class="text-decoration-none">
+                                            #{{ error.id }}
+                                        </a>
+                                    </td>
+                                    <td><code>{{ error.machine }}</code></td>
+                                    <td><span class="badge bg-secondary">{{ error.distro }}</span></td>
+                                    <td>
+                                        <span class="badge bg-danger error-type-badge">{{ error.error_type }}</span>
+                                    </td>
+                                    <td><code>{{ error.failure_package }}</code></td>
+                                    <td>
+                                        <small class="text-muted">
+                                            {{ error.created_at.format("%Y-%m-%d %H:%M") }}
+                                        </small>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="text-center">
+                        <a href="{{ base_url }}/Errors" class="btn btn-outline-primary">
+                            View All Errors →
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <p class="text-muted">No error reports found.</p>
+                        <small>Error reports will appear here once submitted via the Yocto build tools.</small>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card stats-card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">📊 Quick Stats</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-12">
+                        <h2 class="text-primary">{{ total_errors }}</h2>
+                        <p class="text-muted mb-3">Total Error Reports</p>
+                    </div>
+                </div>
+                <hr>
+                <div class="d-grid gap-2">
+                    <a href="{{ base_url }}/Stats" class="btn btn-outline-primary btn-sm">
+                        📈 Detailed Statistics
+                    </a>
+                    <a href="{{ base_url }}/Errors" class="btn btn-outline-secondary btn-sm">
+                        🔍 Search & Filter
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5 class="card-title mb-0">ℹ️ How to Submit Errors</h5>
+            </div>
+            <div class="card-body">
+                <p class="small">From your Yocto build environment:</p>
+                <pre class="bg-light p-2 rounded"><code>send-error-report /path/to/error_report.txt</code></pre>
+                <p class="small text-muted">
+                    The error reporting tool will prompt you for optional contact information 
+                    and provide a URL to view your submitted report.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">🚀 API Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Submit Error Report</h6>
+                        <code>POST {{ base_url }}/ClientPost/JSON/</code>
+                        <p class="small text-muted mt-2">
+                            Compatible with existing Yocto error reporting tools.
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Browse Errors (API)</h6>
+                        <code>GET {{ base_url }}/api/errors</code>
+                        <p class="small text-muted mt-2">
+                            JSON API with filtering, search, and pagination support.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
