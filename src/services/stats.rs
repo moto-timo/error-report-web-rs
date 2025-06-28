@@ -1,9 +1,9 @@
+use chrono::{DateTime, Duration, Utc};
 use sea_orm::{
-    ColumnTrait, DatabaseConnection, DbErr, EntityTrait, PaginatorTrait, QueryFilter, QueryOrder,
-    QuerySelect, Expr, Alias,
+    Alias, ColumnTrait, DatabaseConnection, DbErr, EntityTrait, Expr, PaginatorTrait, QueryFilter,
+    QueryOrder, QuerySelect,
 };
 use serde::Serialize;
-use chrono::{DateTime, Utc, Duration};
 
 use crate::models::{error_report, ErrorReport};
 
@@ -50,16 +50,22 @@ impl StatsService {
         let total_errors = ErrorReport::find().count(&self.db).await?;
 
         // Errors by type
-        let errors_by_type = self.get_grouped_stats(error_report::Column::ErrorType).await?;
+        let errors_by_type = self
+            .get_grouped_stats(error_report::Column::ErrorType)
+            .await?;
 
         // Errors by machine
-        let errors_by_machine = self.get_grouped_stats(error_report::Column::Machine).await?;
+        let errors_by_machine = self
+            .get_grouped_stats(error_report::Column::Machine)
+            .await?;
 
         // Errors by distro
         let errors_by_distro = self.get_grouped_stats(error_report::Column::Distro).await?;
 
         // Errors by package (top failures)
-        let errors_by_package = self.get_grouped_stats(error_report::Column::FailurePackage).await?;
+        let errors_by_package = self
+            .get_grouped_stats(error_report::Column::FailurePackage)
+            .await?;
 
         // Recent errors
         let recent_errors = ErrorReport::find()
@@ -90,7 +96,10 @@ impl StatsService {
         })
     }
 
-    async fn get_grouped_stats(&self, column: error_report::Column) -> Result<Vec<(String, u64)>, DbErr> {
+    async fn get_grouped_stats(
+        &self,
+        column: error_report::Column,
+    ) -> Result<Vec<(String, u64)>, DbErr> {
         let results = ErrorReport::find()
             .select_only()
             .column(column)
@@ -102,7 +111,10 @@ impl StatsService {
             .all(&self.db)
             .await?;
 
-        Ok(results.into_iter().map(|(name, count)| (name, count as u64)).collect())
+        Ok(results
+            .into_iter()
+            .map(|(name, count)| (name, count as u64))
+            .collect())
     }
 
     async fn get_daily_stats(&self) -> Result<Vec<DailyStats>, DbErr> {
@@ -215,10 +227,12 @@ impl StatsService {
     }
 
     pub async fn get_error_type_stats(&self) -> Result<Vec<(String, u64)>, DbErr> {
-        self.get_grouped_stats(error_report::Column::ErrorType).await
+        self.get_grouped_stats(error_report::Column::ErrorType)
+            .await
     }
 
     pub async fn get_package_failure_stats(&self) -> Result<Vec<(String, u64)>, DbErr> {
-        self.get_grouped_stats(error_report::Column::FailurePackage).await
+        self.get_grouped_stats(error_report::Column::FailurePackage)
+            .await
     }
 }
