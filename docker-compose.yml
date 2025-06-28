@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15
+    container_name: error_report_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-error_reports}
+      POSTGRES_USER: ${POSTGRES_USER:-error_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-error_password}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./migrations/001_initial.sql:/docker-entrypoint-initdb.d/001_initial.sql
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-error_user}"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: error_report_web
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-error_user}:${POSTGRES_PASSWORD:-error_password}@db:5432/${POSTGRES_DB:-error_reports}
+      BIND_ADDRESS: 0.0.0.0
+      PORT: 8000
+      BASE_URL: ${BASE_URL:-http://localhost:8000}
+      STATIC_DIR: ./static
+      TEMPLATE_DIR: ./templates
+      RUST_LOG: ${RUST_LOG:-info}
+      BUGZILLA_URL: ${BUGZILLA_URL:-https://bugzilla.yoctoproject.org}
+      EMAIL_HOST: ${EMAIL_HOST:-localhost}
+      EMAIL_PORT: ${EMAIL_PORT:-587}
+      EMAIL_FROM: ${EMAIL_FROM:-noreply@errors.yoctoproject.org}
+    ports:
+      - "${WEB_PORT:-8000}:8000"
+    volumes:
+      - ./static:/app/static:ro
+      - ./templates:/app/templates:ro
+
+volumes:
+  postgres_data:

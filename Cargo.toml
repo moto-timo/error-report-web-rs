@@ -1,0 +1,53 @@
+[package]
+name = "error-report-web-rs"
+version = "0.1.0"
+edition = "2021"
+authors = ["Timothy Orling <ticotimo@gmail.com>"]
+description = "Yocto Project Error Reporting Web Application - Rust Implementation"
+license = "MIT"
+repository = "https://github.com/moto-timo/error-report-web-rs"
+
+[dependencies]
+# Web framework
+axum = { version = "0.7", features = ["macros"] }
+tokio = { version = "1.0", features = ["full"] }
+tower = "0.4"
+tower-http = { version = "0.5", features = ["fs", "trace", "cors"] }
+
+# Database
+sea-orm = { version = "0.12", features = ["sqlx-postgres", "runtime-tokio-rustls", "macros", "with-chrono", "with-uuid"] }
+sea-orm-migration = "0.12"
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Templates
+askama = { version = "0.12", features = ["with-axum"] }
+
+# Date/Time
+chrono = { version = "0.4", features = ["serde"] }
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = "0.3"
+
+# Validation
+validator = { version = "0.16", features = ["derive"] }
+
+# Environment
+dotenvy = "0.15"
+
+# UUID
+uuid = { version = "1.0", features = ["v4", "serde"] }
+
+# Email (for notifications)
+lettre = "0.11"
+
+[dev-dependencies]
+axum-test = "14.0"
+tokio-test = "0.4"
+
+[[bin]]
+name = "error-report-web"
+path = "src/main.rs"
