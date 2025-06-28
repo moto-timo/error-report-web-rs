@@ -5,7 +5,11 @@ pub enum ValidationError {
     #[error("Field '{field}' is required")]
     RequiredField { field: String },
     #[error("Field '{field}' is too long (max: {max}, actual: {actual})")]
-    TooLong { field: String, max: usize, actual: usize },
+    TooLong {
+        field: String,
+        max: usize,
+        actual: usize,
+    },
     #[error("Field '{field}' contains invalid characters")]
     InvalidCharacters { field: String },
     #[error("Invalid email format")]
@@ -65,7 +69,11 @@ fn validate_required_field(value: &str, field_name: &str) -> Result<(), Validati
     Ok(())
 }
 
-fn validate_max_length(value: &str, field_name: &str, max_length: usize) -> Result<(), ValidationError> {
+fn validate_max_length(
+    value: &str,
+    field_name: &str,
+    max_length: usize,
+) -> Result<(), ValidationError> {
     if value.len() > max_length {
         return Err(ValidationError::TooLong {
             field: field_name.to_string(),
@@ -87,7 +95,12 @@ fn validate_email(email: &str) -> Result<(), ValidationError> {
 fn validate_no_harmful_content(content: &str) -> Result<(), ValidationError> {
     // Basic check for potentially harmful content
     let harmful_patterns = [
-        "<script", "</script>", "javascript:", "vbscript:", "onload=", "onerror="
+        "<script",
+        "</script>",
+        "javascript:",
+        "vbscript:",
+        "onload=",
+        "onerror=",
     ];
 
     let content_lower = content.to_lowercase();

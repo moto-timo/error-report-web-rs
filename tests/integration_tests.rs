@@ -1,6 +1,6 @@
 use axum_test::TestServer;
+use error_report_web_rs::{create_test_app, AppState};
 use serde_json::json;
-use error_report_web_rs::{AppState, create_test_app};
 
 #[tokio::test]
 async fn test_submit_error_report() {
@@ -27,10 +27,7 @@ async fn test_submit_error_report() {
         }
     });
 
-    let response = server
-        .post("/ClientPost/JSON/")
-        .json(&payload)
-        .await;
+    let response = server.post("/ClientPost/JSON/").json(&payload).await;
 
     response.assert_status_ok();
 
@@ -60,7 +57,11 @@ async fn test_list_errors_api() {
         "branch_commit": "test123"
     });
 
-    server.post("/ClientPost/JSON/").json(&payload).await.assert_status_ok();
+    server
+        .post("/ClientPost/JSON/")
+        .json(&payload)
+        .await
+        .assert_status_ok();
 
     // Now test listing
     let response = server.get("/api/errors").await;
@@ -106,8 +107,16 @@ async fn test_error_filtering() {
         "branch_commit": "def456"
     });
 
-    server.post("/ClientPost/JSON/").json(&payload1).await.assert_status_ok();
-    server.post("/ClientPost/JSON/").json(&payload2).await.assert_status_ok();
+    server
+        .post("/ClientPost/JSON/")
+        .json(&payload1)
+        .await
+        .assert_status_ok();
+    server
+        .post("/ClientPost/JSON/")
+        .json(&payload2)
+        .await
+        .assert_status_ok();
 
     // Test filtering by machine
     let response = server.get("/api/errors?machine=qemux86-64").await;
@@ -226,7 +235,11 @@ async fn test_search_functionality() {
         "branch_commit": "search123"
     });
 
-    server.post("/ClientPost/JSON/").json(&payload).await.assert_status_ok();
+    server
+        .post("/ClientPost/JSON/")
+        .json(&payload)
+        .await
+        .assert_status_ok();
 
     // Search for the error
     let response = server.get("/api/errors?search=unique+searchable").await;
@@ -235,5 +248,8 @@ async fn test_search_functionality() {
     let body: serde_json::Value = response.json();
     let errors = body["errors"].as_array().unwrap();
     assert!(errors.len() > 0);
-    assert!(errors[0]["error_details"].as_str().unwrap().contains("unique searchable"));
+    assert!(errors[0]["error_details"]
+        .as_str()
+        .unwrap()
+        .contains("unique searchable"));
 }

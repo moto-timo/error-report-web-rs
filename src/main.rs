@@ -25,7 +25,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let bind_addr = format!("{}:{}", config.bind_address, config.port);
     let listener = tokio::net::TcpListener::bind(&bind_addr).await?;
 
-    tracing::info!("🚀 Error Report Web Server starting on http://{}", bind_addr);
+    tracing::info!(
+        "🚀 Error Report Web Server starting on http://{}",
+        bind_addr
+    );
     tracing::info!("📊 Dashboard available at http://{}/", bind_addr);
     tracing::info!("📋 API documentation at http://{}/api/", bind_addr);
 

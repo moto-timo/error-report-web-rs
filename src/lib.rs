@@ -2,13 +2,9 @@ use axum::{
     routing::{get, post},
     Router,
 };
-use sea_orm::{Database, DatabaseConnection, ConnectOptions};
+use sea_orm::{ConnectOptions, Database, DatabaseConnection};
 use std::sync::Arc;
-use tower_http::{
-    services::ServeDir,
-    trace::TraceLayer,
-    cors::CorsLayer,
-};
+use tower_http::{cors::CorsLayer, services::ServeDir, trace::TraceLayer};
 
 pub mod config;
 pub mod handlers;
@@ -25,7 +21,8 @@ pub struct AppState {
 }
 
 pub async fn create_app(config: Config) -> Router {
-    let db = Database::connect(&config.database_url).await
+    let db = Database::connect(&config.database_url)
+        .await
         .expect("Failed to connect to database");
 
     let app_state = AppState {
@@ -35,25 +32,27 @@ pub async fn create_app(config: Config) -> Router {
 
     Router::new()
         // API routes - maintaining Django compatibility
-        .route("/ClientPost/JSON/", post(handlers::api::submit_error_report))
+        .route(
+            "/ClientPost/JSON/",
+            post(handlers::api::submit_error_report),
+        )
         .route("/api/errors", get(handlers::api::list_errors))
         .route("/api/errors/:id", get(handlers::api::get_error))
         .route("/api/stats", get(handlers::api::get_stats))
-
         // Web interface routes
         .route("/", get(handlers::web::index))
         .route("/Errors", get(handlers::web::error_list_page))
-        .route("/Errors/Details/:id/", get(handlers::web::error_detail_page))
+        .route(
+            "/Errors/Details/:id/",
+            get(handlers::web::error_detail_page),
+        )
         .route("/Stats", get(handlers::web::stats_page))
         .route("/Stats/", get(handlers::web::stats_page))
-
         // Admin routes
         .route("/admin", get(handlers::admin::admin_dashboard))
         .route("/admin/", get(handlers::admin::admin_dashboard))
-
         // Static file serving
         .nest_service("/static", ServeDir::new(&app_state.config.static_dir))
-
         .layer(CorsLayer::permissive())
         .layer(TraceLayer::new_for_http())
         .with_state(app_state)
@@ -64,8 +63,8 @@ pub async fn create_test_app() -> Router {
     use std::env;
 
     // Set up test database URL - use in-memory SQLite for tests
-    let test_db_url = env::var("TEST_DATABASE_URL")
-        .unwrap_or_else(|_| "sqlite::memory:".to_string());
+    let test_db_url =
+        env::var("TEST_DATABASE_URL").unwrap_or_else(|_| "sqlite::memory:".to_string());
 
     let config = Config {
         database_url: test_db_url,
@@ -91,7 +90,8 @@ pub async fn create_test_app() -> Router {
         .min_connections(5)
         .sqlx_logging(false); // Disable logging in tests
 
-    let db = Database::connect(opt).await
+    let db = Database::connect(opt)
+        .await
         .expect("Failed to connect to test database");
 
     // Run migrations for test database
@@ -103,13 +103,19 @@ pub async fn create_test_app() -> Router {
     };
 
     Router::new()
-        .route("/ClientPost/JSON/", post(handlers::api::submit_error_report))
+        .route(
+            "/ClientPost/JSON/",
+            post(handlers::api::submit_error_report),
+        )
         .route("/api/errors", get(handlers::api::list_errors))
         .route("/api/errors/:id", get(handlers::api::get_error))
         .route("/api/stats", get(handlers::api::get_stats))
         .route("/", get(handlers::web::index))
         .route("/Errors", get(handlers::web::error_list_page))
-        .route("/Errors/Details/:id/", get(handlers::web::error_detail_page))
+        .route(
+            "/Errors/Details/:id/",
+            get(handlers::web::error_detail_page),
+        )
         .route("/Stats", get(handlers::web::stats_page))
         .route("/admin", get(handlers::admin::admin_dashboard))
         .with_state(app_state)
