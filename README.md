@@ -1,4 +1,4 @@
-# error-report-web-rs - Rust Implementation
+# Error Report Web - Rust Implementation
 
 A high-performance Rust rewrite of the Yocto Project Error Reporting Web Application. This application serves as a central repository for build error reports from Yocto Project builds, providing both an API for submitting errors and a web interface for browsing them.
 
@@ -207,7 +207,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Original Django implementation by the Yocto Project team
 - Built with amazing Rust ecosystem tools
 - Inspired by the need for better performance in build infrastructure
-- Original transformation from Django to Rust by Claude Sonnet 4.
+- Original transformation from Django to Rust by Claude Sonnet 4
 
 ## 📞 Support
 

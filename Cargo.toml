@@ -2,10 +2,15 @@
 name = "error-report-web-rs"
 version = "0.1.0"
 edition = "2021"
-authors = ["Timothy Orling <ticotimo@gmail.com>"]
+authors = ["Tim Orling <ticotimo@gmail.com>"]
 description = "Yocto Project Error Reporting Web Application - Rust Implementation"
 license = "MIT"
 repository = "https://github.com/moto-timo/error-report-web-rs"
+homepage = "https://github.com/moto-timo/error-report-web-rs"
+documentation = "https://github.com/moto-timo/error-report-web-rs"
+readme = "README.md"
+keywords = ["yocto", "build", "error-reporting", "web", "rust"]
+categories = ["web-programming::http-server", "development-tools"]
 
 [dependencies]
 # Web framework
