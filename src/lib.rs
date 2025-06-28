@@ -21,7 +21,11 @@ use axum::{
 };
 use sea_orm::DatabaseConnection;
 use std::sync::Arc;
-use tower_http::{cors::CorsLayer, services::ServeDir, trace::TraceLayer};
+use tower_http::{
+    services::ServeDir,
+    trace::TraceLayer,
+    cors::CorsLayer,
+};
 
 /// Application state shared across all handlers
 #[derive(Clone)]
@@ -34,30 +38,29 @@ pub struct AppState {
 pub fn create_app(app_state: AppState) -> Router {
     Router::new()
         // API routes - maintaining Django compatibility
-        .route(
-            "/ClientPost/JSON/",
-            post(handlers::api::submit_error_report),
-        )
+        .route("/ClientPost/JSON/", post(handlers::api::submit_error_report))
         .route("/api/errors", get(handlers::api::list_errors))
         .route("/api/errors/:id", get(handlers::api::get_error))
         .route("/api/stats", get(handlers::api::get_stats))
+
         // Web interface routes
         .route("/", get(handlers::web::index))
         .route("/Errors", get(handlers::web::error_list_page))
         .route("/Errors/", get(handlers::web::error_list_page))
-        .route(
-            "/Errors/Details/:id/",
-            get(handlers::web::error_detail_page),
-        )
+        .route("/Errors/Details/:id/", get(handlers::web::error_detail_page))
         .route("/Stats", get(handlers::web::stats_page))
         .route("/Stats/", get(handlers::web::stats_page))
+
         // Admin routes
         .route("/admin", get(handlers::admin::admin_dashboard))
         .route("/admin/", get(handlers::admin::admin_dashboard))
+
         // Health check endpoint
         .route("/health", get(health_check))
+
         // Static file serving
         .nest_service("/static", ServeDir::new(&app_state.config.static_dir))
+
         .layer(CorsLayer::permissive())
         .layer(TraceLayer::new_for_http())
         .with_state(app_state)
@@ -72,7 +75,8 @@ pub async fn health_check() -> Result<&'static str, StatusCode> {
 pub fn init_logging() {
     tracing_subscriber::fmt()
         .with_env_filter(
-            tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| "info".into()),
+            tracing_subscriber::EnvFilter::try_from_default_env()
+                .unwrap_or_else(|_| "info".into())
         )
         .init();
 }
