@@ -2,7 +2,7 @@
 name = "error-report-web-rs"
 version = "0.1.0"
 edition = "2021"
-authors = ["Tim Orling <ticotimo@gmail.com>"]
+authors = ["Timothy Orling <ticotimo@gmail.com>"]
 description = "Yocto Project Error Reporting Web Application - Rust Implementation"
 license = "MIT"
 repository = "https://github.com/moto-timo/error-report-web-rs"
@@ -29,6 +29,7 @@ serde_json = "1.0"
 
 # Templates
 askama = { version = "0.12", features = ["with-axum"] }
+askama_axum = "0.4"
 
 # Date/Time
 chrono = { version = "0.4", features = ["serde"] }

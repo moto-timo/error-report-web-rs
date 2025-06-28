@@ -3,21 +3,17 @@ use axum::{
     http::StatusCode,
     response::Json,
 };
-use chrono::Utc;
 use sea_orm::{
-    ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, PaginatorTrait, QueryFilter,
+    ActiveModelTrait, ColumnTrait, EntityTrait, PaginatorTrait, QueryFilter,
     QueryOrder, Set,
 };
+use chrono::Utc;
 use tracing::{error, info};
 
 use crate::{
     models::{
-        build_configuration::{self, BuildConfigData},
-        error_report::{
-            self, ErrorListResponse, ErrorQuery, ErrorSubmissionData, PaginationInfo,
-            SubmissionResponse,
-        },
-        BuildConfiguration, ErrorReport,
+        error_report::{self, ErrorQuery, ErrorListResponse, ErrorSubmissionData, PaginationInfo, SubmissionResponse},
+        ErrorReport,
     },
     services::stats::ErrorStats,
     utils::validation::validate_error_submission,
@@ -29,10 +25,7 @@ pub async fn submit_error_report(
     State(app_state): State<AppState>,
     Json(payload): Json<ErrorSubmissionData>,
 ) -> Result<Json<SubmissionResponse>, StatusCode> {
-    info!(
-        "Received error report submission for machine: {}",
-        payload.machine
-    );
+    info!("Received error report submission for machine: {}", payload.machine);
 
     // Validate submission data
     if let Err(validation_error) = validate_error_submission(&payload) {
@@ -61,15 +54,20 @@ pub async fn submit_error_report(
         ..Default::default()
     };
 
-    let saved_report = error_report.insert(&app_state.db).await.map_err(|e| {
-        error!("Failed to save error report: {:?}", e);
-        StatusCode::INTERNAL_SERVER_ERROR
-    })?;
+    let saved_report = error_report
+        .insert(&app_state.db)
+        .await
+        .map_err(|e| {
+            error!("Failed to save error report: {:?}", e);
+            StatusCode::INTERNAL_SERVER_ERROR
+        })?;
 
     // Save build configuration if provided
     if let Some(build_config) = payload.build_configuration {
-        let meta_layers_json =
-            serde_json::to_string(&build_config.meta_layers).unwrap_or_else(|_| "[]".to_string());
+        use crate::models::{build_configuration, BuildConfiguration};
+
+        let meta_layers_json = serde_json::to_string(&build_config.meta_layers)
+            .unwrap_or_else(|_| "[]".to_string());
 
         let build_config_model = build_configuration::ActiveModel {
             error_report_id: Set(saved_report.id),
@@ -86,17 +84,11 @@ pub async fn submit_error_report(
         }
     }
 
-    info!(
-        "Successfully saved error report with ID: {}",
-        saved_report.id
-    );
+    info!("Successfully saved error report with ID: {}", saved_report.id);
 
     let response = SubmissionResponse {
         id: saved_report.id,
-        url: format!(
-            "{}/Errors/Details/{}/",
-            app_state.config.base_url, saved_report.id
-        ),
+        url: format!("{}/Errors/Details/{}/", app_state.config.base_url, saved_report.id),
         status: "success".to_string(),
     };
 
@@ -143,14 +135,12 @@ pub async fn list_errors(
     // Date filtering
     if let Some(date_from) = &params.date_from {
         if let Ok(parsed_date) = chrono::DateTime::parse_from_rfc3339(date_from) {
-            query =
-                query.filter(error_report::Column::CreatedAt.gte(parsed_date.with_timezone(&Utc)));
+            query = query.filter(error_report::Column::CreatedAt.gte(parsed_date.with_timezone(&Utc)));
         }
     }
     if let Some(date_to) = &params.date_to {
         if let Ok(parsed_date) = chrono::DateTime::parse_from_rfc3339(date_to) {
-            query =
-                query.filter(error_report::Column::CreatedAt.lte(parsed_date.with_timezone(&Utc)));
+            query = query.filter(error_report::Column::CreatedAt.lte(parsed_date.with_timezone(&Utc)));
         }
     }
 
@@ -158,10 +148,13 @@ pub async fn list_errors(
         .order_by_desc(error_report::Column::CreatedAt)
         .paginate(&app_state.db, per_page);
 
-    let errors = paginator.fetch_page(page - 1).await.map_err(|e| {
-        error!("Failed to fetch errors: {:?}", e);
-        StatusCode::INTERNAL_SERVER_ERROR
-    })?;
+    let errors = paginator
+        .fetch_page(page - 1)
+        .await
+        .map_err(|e| {
+            error!("Failed to fetch errors: {:?}", e);
+            StatusCode::INTERNAL_SERVER_ERROR
+        })?;
 
     let total = paginator.num_items().await.map_err(|e| {
         error!("Failed to count errors: {:?}", e);
@@ -199,7 +192,9 @@ pub async fn get_error(
 }
 
 /// Get error statistics
-pub async fn get_stats(State(app_state): State<AppState>) -> Result<Json<ErrorStats>, StatusCode> {
+pub async fn get_stats(
+    State(app_state): State<AppState>,
+) -> Result<Json<ErrorStats>, StatusCode> {
     let stats_service = crate::services::stats::StatsService::new(app_state.db.clone());
 
     let stats = stats_service.get_error_stats().await.map_err(|e| {

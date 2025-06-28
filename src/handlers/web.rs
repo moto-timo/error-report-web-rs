@@ -1,17 +1,17 @@
-use askama::Template;
 use axum::{
     extract::{Path, Query, State},
     http::StatusCode,
     response::Html,
 };
-use sea_orm::{ColumnTrait, EntityTrait, PaginatorTrait, QueryFilter, QueryOrder};
+use askama::Template;
+use sea_orm::{ColumnTrait, EntityTrait, QueryFilter, QueryOrder, QuerySelect};
 use tracing::error;
 
 use crate::{
     models::{
-        build_configuration::{self},
         error_report::{self, ErrorQuery},
-        BuildConfiguration, ErrorReport,
+        build_configuration::{self},
+        ErrorReport, BuildConfiguration,
     },
     services::stats::StatsService,
     AppState,
@@ -149,10 +149,13 @@ pub async fn error_list_page(
         .order_by_desc(error_report::Column::CreatedAt)
         .paginate(&app_state.db, per_page);
 
-    let errors = paginator.fetch_page(page - 1).await.map_err(|e| {
-        error!("Failed to fetch errors: {:?}", e);
-        StatusCode::INTERNAL_SERVER_ERROR
-    })?;
+    let errors = paginator
+        .fetch_page(page - 1)
+        .await
+        .map_err(|e| {
+            error!("Failed to fetch errors: {:?}", e);
+            StatusCode::INTERNAL_SERVER_ERROR
+        })?;
 
     let total = paginator.num_items().await.map_err(|e| {
         error!("Failed to count errors: {:?}", e);

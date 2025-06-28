@@ -1,9 +1,12 @@
+use axum::{
+    extract::State,
+    http::StatusCode,
+    response::Html,
+};
 use askama::Template;
-use axum::{extract::State, http::StatusCode, response::Html};
-use sea_orm::EntityTrait;
 use tracing::error;
 
-use crate::{models::ErrorReport, services::stats::StatsService, AppState};
+use crate::{services::stats::StatsService, AppState};
 
 #[derive(Template)]
 #[template(path = "admin_dashboard.html")]
@@ -13,9 +16,7 @@ pub struct AdminDashboardTemplate {
 }
 
 /// Admin dashboard with comprehensive statistics
-pub async fn admin_dashboard(
-    State(app_state): State<AppState>,
-) -> Result<Html<String>, StatusCode> {
+pub async fn admin_dashboard(State(app_state): State<AppState>) -> Result<Html<String>, StatusCode> {
     let stats_service = StatsService::new(app_state.db.clone());
 
     let stats = stats_service.get_error_stats().await.map_err(|e| {

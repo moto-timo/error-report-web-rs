@@ -28,14 +28,18 @@ impl Config {
         Ok(Config {
             database_url: env::var("DATABASE_URL")
                 .map_err(|_| ConfigError::MissingEnvVar("DATABASE_URL"))?,
-            bind_address: env::var("BIND_ADDRESS").unwrap_or_else(|_| "127.0.0.1".to_string()),
+            bind_address: env::var("BIND_ADDRESS")
+                .unwrap_or_else(|_| "127.0.0.1".to_string()),
             port: env::var("PORT")
                 .unwrap_or_else(|_| "8000".to_string())
                 .parse()
                 .map_err(|_| ConfigError::InvalidPort)?,
-            base_url: env::var("BASE_URL").map_err(|_| ConfigError::MissingEnvVar("BASE_URL"))?,
-            static_dir: env::var("STATIC_DIR").unwrap_or_else(|_| "./static".to_string()),
-            template_dir: env::var("TEMPLATE_DIR").unwrap_or_else(|_| "./templates".to_string()),
+            base_url: env::var("BASE_URL")
+                .map_err(|_| ConfigError::MissingEnvVar("BASE_URL"))?,
+            static_dir: env::var("STATIC_DIR")
+                .unwrap_or_else(|_| "./static".to_string()),
+            template_dir: env::var("TEMPLATE_DIR")
+                .unwrap_or_else(|_| "./templates".to_string()),
             max_upload_size: env::var("MAX_UPLOAD_SIZE")
                 .unwrap_or_else(|_| "10485760".to_string()) // 10MB default
                 .parse()
@@ -43,7 +47,8 @@ impl Config {
             bugzilla_url: env::var("BUGZILLA_URL")
                 .unwrap_or_else(|_| "https://bugzilla.yoctoproject.org".to_string()),
             email: EmailConfig {
-                host: env::var("EMAIL_HOST").unwrap_or_else(|_| "localhost".to_string()),
+                host: env::var("EMAIL_HOST")
+                    .unwrap_or_else(|_| "localhost".to_string()),
                 port: env::var("EMAIL_PORT")
                     .unwrap_or_else(|_| "587".to_string())
                     .parse()
@@ -68,5 +73,3 @@ pub enum ConfigError {
     #[error("Invalid upload size")]
     InvalidUploadSize,
 }
-
-impl std::error::Error for ConfigError {}

@@ -19,28 +19,28 @@
         <form method="get" class="row g-3">
             <div class="col-md-3">
                 <label for="search" class="form-label">Search</label>
-                <input type="text" class="form-control" id="search" name="search" 
-                       value="{{ filters.search or '' }}" placeholder="Error details, package...">
+                <input type="text" class="form-control" id="search" name="search"
+                       value="{{ filters.search|default('') }}" placeholder="Error details, package...">
             </div>
             <div class="col-md-2">
                 <label for="machine" class="form-label">Machine</label>
-                <input type="text" class="form-control" id="machine" name="machine" 
-                       value="{{ filters.machine or '' }}" placeholder="qemux86-64">
+                <input type="text" class="form-control" id="machine" name="machine"
+                       value="{{ filters.machine|default('') }}" placeholder="qemux86-64">
             </div>
             <div class="col-md-2">
                 <label for="distro" class="form-label">Distro</label>
-                <input type="text" class="form-control" id="distro" name="distro" 
-                       value="{{ filters.distro or '' }}" placeholder="poky">
+                <input type="text" class="form-control" id="distro" name="distro"
+                       value="{{ filters.distro|default('') }}" placeholder="poky">
             </div>
             <div class="col-md-2">
                 <label for="error_type" class="form-label">Error Type</label>
-                <input type="text" class="form-control" id="error_type" name="error_type" 
-                       value="{{ filters.error_type or '' }}" placeholder="CompilationError">
+                <input type="text" class="form-control" id="error_type" name="error_type"
+                       value="{{ filters.error_type|default('') }}" placeholder="CompilationError">
             </div>
             <div class="col-md-2">
                 <label for="failure_package" class="form-label">Package</label>
-                <input type="text" class="form-control" id="failure_package" name="failure_package" 
-                       value="{{ filters.failure_package or '' }}" placeholder="package-name">
+                <input type="text" class="form-control" id="failure_package" name="failure_package"
+                       value="{{ filters.failure_package|default('') }}" placeholder="package-name">
             </div>
             <div class="col-md-1">
                 <label class="form-label">&nbsp;</label>
@@ -158,8 +158,8 @@
 
 <div class="text-center text-muted">
     <small>
-        Showing {{ ((pagination.page - 1) * pagination.per_page) + 1 }} to 
-        {{ (pagination.page * pagination.per_page) | min(pagination.total) }} 
+        Showing {{ ((pagination.page - 1) * pagination.per_page) + 1 }} to
+        {{ (pagination.page * pagination.per_page) | min(pagination.total) }}
         of {{ pagination.total }} errors
     </small>
 </div>
